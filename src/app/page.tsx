@@ -9,13 +9,11 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Switch } from "@/components/ui/switch"
-import { EyeIcon, EyeOffIcon, CopyIcon, TrashIcon, MoonIcon, SunIcon } from 'lucide-react'
+import { EyeIcon, EyeOffIcon, CopyIcon, TrashIcon, MoonIcon, SunIcon, TriangleAlert } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
-import Link from 'next/link'
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -30,6 +28,7 @@ import { derivePath } from "ed25519-hd-key";
 import { Keypair } from "@solana/web3.js";
 import nacl from "tweetnacl"
 import bs58 from "bs58";
+import { validWords } from '@/lib/words'
 
 interface Wallet {
   id: number;
@@ -77,8 +76,34 @@ export default function WalletList() {
     setIsWarningOpen(true)
   }
 
+  const checkIndividualWordsLength = () => {
+    const individualWords = seedPhrase.split(" ");
+    if (individualWords.length === 12) {
+      return false;
+    }
+    return true;
+  }
+
+  const checkValidMnemonic = () => {
+    const individualWords = seedPhrase.split(" ");
+    const isValid = individualWords.every((word) => validWords.includes(word));
+  
+    if (!isValid) {
+      toast({
+        title: "Error",
+        description: "Please provide a valid mnemonic",
+        variant: "destructive",
+      });
+      return false;
+    }
+    return true;
+  };
+  
+
   const addWallet = async () => {
-    if (seedPhrase) {
+
+    if (seedPhrase && checkValidMnemonic()) {
+
       const seed = await mnemonicToSeed(seedPhrase);
       const path = `m/44'/501'/${currentIndex}'/0'`;
       const derivedSeed = derivePath(path, seed.toString("hex")).key;
@@ -91,20 +116,12 @@ export default function WalletList() {
         privateKey: bs58.encode(keypair.secretKey)
       }
       setWallets([...wallets, newWallet])
-
-
-
       toast({
         title: "Wallet Added",
         description: "A new wallet has been successfully added.",
       })
-    } else {
-      toast({
-        title: "Error",
-        description: "Please generate a seed phrase first.",
-        variant: "destructive",
-      })
-    }
+
+    } 
   }
 
   const deleteWallet = (id: number) => {
@@ -158,6 +175,7 @@ export default function WalletList() {
                   onChange={(e) => {
                     setSeedPhrase(e.target.value);
                   }}
+
                   className={`flex-grow ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}
                   placeholder="Generate or enter your seed phrase"
                 />
@@ -179,12 +197,16 @@ export default function WalletList() {
                   </Button>
                 </div>
               </div>
+              {checkIndividualWordsLength() ? <div className='flex'>
+                <TriangleAlert className='text-red-500 mr-4 mt-2' />
+                <span className='text-red-500 mt-2'>Enter 12 word mnemonic or generate a new one</span>
+              </div> : ""}
             </div>
             <div className="flex flex-col sm:flex-row justify-between space-y-2 sm:space-y-0 sm:space-x-2">
               <Button onClick={generateMn} disabled={!!seedPhrase} className="w-full sm:w-auto">
                 Generate Seed Phrase
               </Button>
-              <Button onClick={addWallet} disabled={!seedPhrase} className="w-full sm:w-auto">
+              <Button onClick={addWallet} disabled={checkIndividualWordsLength()} className="w-full sm:w-auto">
                 Add Wallet
               </Button>
             </div>
