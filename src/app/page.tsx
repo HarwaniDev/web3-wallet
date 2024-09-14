@@ -93,6 +93,7 @@ export default function WalletList() {
         title: "Error",
         description: "Please provide a valid mnemonic",
         variant: "destructive",
+        duration:3000
       });
       return false;
     }
@@ -119,6 +120,7 @@ export default function WalletList() {
       toast({
         title: "Wallet Added",
         description: "A new wallet has been successfully added.",
+        duration:3000
       })
 
     } 
@@ -131,6 +133,7 @@ export default function WalletList() {
       title: "Wallet Deleted",
       description: "The selected wallet has been removed.",
       variant: "destructive",
+      duration:3000
     })
   }
 
@@ -139,6 +142,7 @@ export default function WalletList() {
     toast({
       title: "Copied to Clipboard",
       description: `The ${type} has been copied to your clipboard.`,
+      duration:3000
     })
   }
 
@@ -316,6 +320,7 @@ export default function WalletList() {
               toast({
                 title: "Seed Phrase Generated",
                 description: "A new seed phrase has been generated. Keep it secret and safe!",
+                duration:3000
               })
             }}>I Understand</AlertDialogAction>
           </AlertDialogFooter>
